@@ -1,3 +1,5 @@
+#!/bin/zsh
+
 # ----- Legal: ----
 # Sample scripts are not supported under any N-able support program or service.
 # The sample scripts are provided AS IS without warranty of any kind.
@@ -6,9 +8,6 @@
 # In no event shall N-able or any other party be liable for damages arising
 # out of the use of or inability to use the sample scripts.
 # ----- /Legal ----
-
-
-#!/bin/zsh
 
 # !!! Terminal or process running this script will need Full Disk Access
 
