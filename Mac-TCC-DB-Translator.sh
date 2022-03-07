@@ -11,6 +11,13 @@
 
 # !!! Terminal or process running this script will need Full Disk Access
 
+if [ -z "${ZSH_VERSION}" ]; then
+  >&2 echo "ERROR: This script is only compatible with Z shell (/bin/zsh)."
+  exit 1
+fi
+# Thanks, @pico
+
+
 # read the tcc.db and translate the following:
 # service
 # client
