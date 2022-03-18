@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+
 # ----- Legal: ----
 # Sample scripts are not supported under any N-able support program or service.
 # The sample scripts are provided AS IS without warranty of any kind.
@@ -11,13 +12,6 @@
 
 # !!! Terminal or process running this script will need Full Disk Access
 
-if [ -z "${ZSH_VERSION}" ]; then
-  >&2 echo "ERROR: This script is only compatible with Z shell (/bin/zsh)."
-  exit 1
-fi
-# Thanks, @pico
-
-
 # read the tcc.db and translate the following:
 # service
 # client
@@ -26,7 +20,7 @@ fi
 # indirect_object_identifier
 # last_modified
 
-# source:
+# see also:
 # https://www.rainforestqa.com/blog/macos-tcc-db-deep-dive
 
 # TCC Translator arrays

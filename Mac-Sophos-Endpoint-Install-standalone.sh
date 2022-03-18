@@ -1,4 +1,12 @@
 #!/bin/bash
+# ----- Legal: ----
+# Sample scripts are not supported under any N-able support program or service.
+# The sample scripts are provided AS IS without warranty of any kind.
+# N-able expressly disclaims all implied warranties including, warranties
+# of merchantability or of fitness for a particular purpose.
+# In no event shall N-able or any other party be liable for damages arising
+# out of the use of or inability to use the sample scripts.
+# ----- /Legal ----
 
 # Install the Sophos Endpoint standalone version. You will need to supply a URL
 # to download the ZIP from, since the installer download is behind a required form
@@ -14,19 +22,19 @@ zipURL=$1
 
 
 # On successful download, install the PKG
-  if curl -SsL -f -o "${TMPDIR}/SophosInstall.zip" "$zipURL"
-  then
-	# Install the PKG
+if curl -SsL -f -o "${TMPDIR}SophosInstall.zip" "$zipURL"
+then
+# Install the PKG
 	cd "$TMPDIR" || exit 1
 	echo "Installing Sophos Endpoint"
 	if unzip -a SophosInstall.zip &> /dev/null
 	then
 		./Sophos\ Installer.app/Contents/MacOS/tools/InstallationDeployer --install
 	else
-		echo "There was an error expanding $TMPDIR/SophosInstall.zip"
+		echo "There was an error expanding {TMPDIR}SophosInstall.zip"
 		exit 1001 # Tell RMM the install failed.
 	fi	
-  else
-  	echo "ERROR downloading ${zipURL}"
+else
+	echo "ERROR downloading ${zipURL}"
 	exit 1001 # Tell RMM the install failed.
-  fi
+fi
