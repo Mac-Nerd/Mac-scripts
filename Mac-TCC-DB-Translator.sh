@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+# version 2.3, 03-23-2022
 
 # ----- Legal: ----
 # Sample scripts are not supported under any N-able support program or service.
@@ -94,45 +95,84 @@ AuthValueArray[2]="Allowed"
 AuthValueArray[3]="Limited"
 
 CurrentClient=""
-# gets a comma separated dump of the TCC db. 
+
+
+processRow() {
+	TCCRow=$1
+	RawClient=$(echo $TCCRow | cut -d',' -f1)
+	
+	ClientType=$(echo $TCCRow | cut -d',' -f2)
+	if [ $ClientType -eq 0 ]
+	then
+		Client=$(mdfind "kMDItemCFBundleIdentifier = $RawClient" | head -1)
+		if [ -z $Client ]
+		then
+			Client=$RawClient
+		fi
+	else
+		Client=$RawClient
+	fi
+		
+	ServiceName=$(echo $TCCRow | cut -d',' -f3)
+	AuthVal=$(echo $TCCRow | cut -d',' -f4)
+	AuthReason=$(echo $TCCRow | cut -d',' -f5)
+	DateAuthEpoch=$(echo $TCCRow | cut -d',' -f6)
+
+	DateAuth=$(date -r $DateAuthEpoch +"%d %h, %Y")
+	
+	if [ "$Client" != "$CurrentClient" ]
+	then
+		CurrentClient=$Client
+		ShortClient=$(echo $Client | sed -e 's/\/Applications\///g') # clean up paths a bit
+		printf "--- \n\n%s\n" $ShortClient
+		CurrentAuthVal=""
+	fi
+ 
+	if [ "$AuthVal" != "$CurrentAuthVal" ]
+	then
+		CurrentAuthVal=$AuthVal
+		printf "\t%s:\n" $AuthValueArray[$AuthVal]
+	fi
+ 
+	printf "\t\t%s (%s - %s)\n"	 $ServiceArray[$ServiceName] $AuthReasonArray[$AuthReason] $DateAuth
+}
+
+
+# start with the system defaults:
+
+echo "[System Default Permissions]"
 
 sqlite3 /Library/Application\ Support/com.apple.tcc/tcc.db -csv -noheader -nullvalue '-' \
 'select client, client_type, service, auth_value, auth_reason, last_modified from access order by client, auth_value' \
 | while read -r TCCRow
 do
-  RawClient=$(echo $TCCRow | cut -d',' -f1)
-  ClientType=$(echo $TCCRow | cut -d',' -f2)
-  if [ $ClientType -eq 0 ]
-  then
-    Client=$(mdfind "kMDItemCFBundleIdentifier = $RawClient" | head -1)
-    if [ -z $Client ]
-    then
-      Client=$RawClient
-    fi
-  else
-    Client=$RawClient
-  fi
-  
-  ServiceName=$(echo $TCCRow | cut -d',' -f3)
-  AuthVal=$(echo $TCCRow | cut -d',' -f4)
-  AuthReason=$(echo $TCCRow | cut -d',' -f5)
-  DateAuthEpoch=$(echo $TCCRow | cut -d',' -f6)
-
-  DateAuth=$(date -r $DateAuthEpoch +"%d %h, %Y")
-  
-  if [ "$Client" != "$CurrentClient" ]
-  then
-    CurrentClient=$Client
-    printf "\nClient: %s:\n" $Client
-    CurrentAuthVal=""
-  fi
- 
-  if [ "$AuthVal" != "$CurrentAuthVal" ]
-  then
-    CurrentAuthVal=$AuthVal
-    printf "\t%s:\n" $AuthValueArray[$AuthVal]
-  fi
- 
-    printf "\t\t%s (%s - %s)\n\n"  $ServiceArray[$ServiceName] $AuthReasonArray[$AuthReason] $DateAuth
-  
+	processRow "$TCCRow"
 done
+
+
+echo "[Per-user Permissions Overrides]"
+
+
+# list all Users' home directories (uses dscl in the rare instance they're not in /Users/*)
+USERHOMES=$(dscl /Local/Default -list /Users NFSHomeDirectory | grep -v "/var/empty" | awk '$2 ~ /^\// { print $2 }' )
+
+for USERHOME in ${=USERHOMES}
+do
+
+	if [ -f "${USERHOME}/Library/Application Support/com.apple.tcc/tcc.db" ]
+	then
+	
+		echo "======== [ ${USERHOME} ]"
+
+		sqlite3 ${USERHOME}/Library/Application\ Support/com.apple.tcc/tcc.db -csv -noheader -nullvalue '-' \
+		'select client, client_type, service, auth_value, auth_reason, last_modified from access order by client, auth_value' \
+		| while read -r TCCRow
+		do
+			processRow "$TCCRow"
+		done
+		echo " ================================================================================ "
+		
+	fi
+
+done
+
