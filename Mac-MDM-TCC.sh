@@ -17,6 +17,14 @@
 # see also:
 # https://www.rainforestqa.com/blog/macos-tcc-db-deep-dive
 
+
+if [ -z "${ZSH_VERSION}" ]; then
+  >&2 echo "ERROR: This script is only compatible with Z shell (/bin/zsh)."
+  exit 1
+fi
+
+
+
 # service
 typeset -A ServiceArray
 ServiceArray[kTCCServiceAddressBook]="Contacts"
@@ -89,7 +97,7 @@ then
 		do
 			if [ $ServiceName = "kTCCServiceAppleEvents" ]
 			then			
-				if $(echo $IdentifierXML | xmllint --xpath "/dict/dict[$ServiceIndex]/dict/true" - &> /dev/null)
+				if $(echo $IdentifierXML | xmllint --xpath "/dict[$ServiceIndex]//true" - &> /dev/null)
 				then
 					AuthVal="Allowed"
 				else
