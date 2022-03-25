@@ -123,7 +123,7 @@ processRow() {
 	if [ "$Client" != "$CurrentClient" ]
 	then
 		CurrentClient=$Client
-		ShortClient=$(echo $Client | sed -e 's/\/Applications\///g') # clean up paths a bit
+		ShortClient=$(basename $Client) # clean up paths a bit
 		printf "--- \n\n%s\n" $ShortClient
 		CurrentAuthVal=""
 	fi
