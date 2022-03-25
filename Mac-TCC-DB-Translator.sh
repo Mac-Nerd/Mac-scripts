@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-# version 2.3, 03-23-2022
+# version 2.6, 03-25-2022
 
 # ----- Legal: ----
 # Sample scripts are not supported under any N-able support program or service.
@@ -138,9 +138,11 @@ processRow() {
 }
 
 
+
+
 # start with the system defaults:
 
-echo "[System Default Permissions]"
+echo "======== [System Default Permissions]"
 
 sqlite3 /Library/Application\ Support/com.apple.tcc/tcc.db -csv -noheader -nullvalue '-' \
 'select client, client_type, service, auth_value, auth_reason, last_modified from access order by client, auth_value' \
@@ -150,7 +152,7 @@ do
 done
 
 
-echo "[Per-user Permissions Overrides]"
+echo "======== [Per-user Permissions Overrides]"
 
 
 # list all Users' home directories (uses dscl in the rare instance they're not in /Users/*)
@@ -162,7 +164,7 @@ do
 	if [ -f "${USERHOME}/Library/Application Support/com.apple.tcc/tcc.db" ]
 	then
 	
-		echo "======== [ ${USERHOME} ]"
+		echo "================ [ ${USERHOME} ]"
 
 		sqlite3 ${USERHOME}/Library/Application\ Support/com.apple.tcc/tcc.db -csv -noheader -nullvalue '-' \
 		'select client, client_type, service, auth_value, auth_reason, last_modified from access order by client, auth_value' \
@@ -170,9 +172,61 @@ do
 		do
 			processRow "$TCCRow"
 		done
-		echo " ================================================================================ "
 		
 	fi
 
 done
+
+
+# MDM profile overrides
+
+if [ -f "/Library/Application Support/com.apple.TCC/MDMOverrides.plist" ]
+then
+	echo "======== [ MDM TCC Profiles ]"
+
+	FullMDMOverrides=$(plutil -convert xml1 -o - /Library/Application\ Support/com.apple.TCC/MDMOverrides.plist)
+
+	MDMOverrides=$(echo $FullMDMOverrides | xmllint --xpath "/*/dict[*]/key" - | sed 's/<[^>]*>/ /g')
+
+	Index=1
+
+	for Identifier in ${=MDMOverrides}
+	do
+		printf "--- \n%s\n" $Identifier
+		
+		IdentifierXML=$(echo $FullMDMOverrides | xmllint --xpath "/*/dict[*]/dict[$Index]" -)
+
+		AllServiceNames="$(echo $IdentifierXML | xmllint --xpath '/dict[1]/key' - | sed 's/<[^>]*>/\n/g')"
+
+		ServiceIndex=1
+		
+		for ServiceName in ${=AllServiceNames}
+		do
+			if [ $ServiceName = "kTCCServiceAppleEvents" ]
+			then			
+				if $(echo $IdentifierXML | xmllint --xpath "/dict/dict[$ServiceIndex]/dict/true" - &> /dev/null)
+				then
+					AuthVal="Allowed"
+				else
+					AuthVal="Denied"
+				fi
+			else 
+				AuthVal="$(echo $IdentifierXML | xmllint --xpath "/dict/dict[$ServiceIndex]/key[1]" - | sed 's/<[^>]*>//g')"	
+			fi
+
+			printf "\t%s:\n" $AuthVal
+			printf "\t\t%s\n" $ServiceArray[$ServiceName]
+			((ServiceIndex++))
+
+		done
+
+		((Index++))
+	done
+
+
+else 
+	echo "======== [ No MDM TCC Profiles found ]"
+fi	
+
+
 
