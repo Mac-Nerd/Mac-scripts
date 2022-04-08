@@ -15,7 +15,8 @@ else
 serverName="sis.n-able.com"
 fi
 
-logFile="$HOME/Desktop/N-central-debug.log"
+#logFile="$HOME/Desktop/N-central-debug.log"
+logFile="/tmp/N-central-debug.log"
 
 if ! [ -f "$logFile" ]
 then
