@@ -33,7 +33,7 @@ startTime=$(date)
 
 echo "[ $startTime ]" >> "$SentinelLog"
 
-StatusMessage=$(/usr/local/bin/sentinelctl status --filters agent 2>/dev/null | tee -a "$SentinelLog" ) || echo "[ ERROR ] SentinelOne not installed." | tee -a "$SentinelLog"
+StatusMessage=$(/usr/local/bin/sentinelctl status --filters agent 2>/dev/null | tee -a "$SentinelLog" ) || echo "[ ERROR: NotInstalled ] SentinelOne not installed." | tee -a "$SentinelLog"
 
 ProtectionDisabled="*Protection:*disabled*"
 MissingAuths="*Missing*com.sentinelone*"
@@ -48,23 +48,23 @@ do
 	case "$StatusLine" in
 
 		$ProtectionDisabled )
-				echo "[ WARNING ] SentinelOne Protection Disabled" | tee -a "$SentinelLog"
+				echo "[ WARNING: ProtectionDis ] SentinelOne Protection Disabled" | tee -a "$SentinelLog"
 				exitcode=1001
 				;;
 		$MissingAuths )
-				echo "[ ERROR ] SentinelOne Missing Authorizations" | tee -a "$SentinelLog"
+				echo "[ ERROR: MissingAuth ] SentinelOne Missing Authorizations" | tee -a "$SentinelLog"
 				exitcode=1002
 				;;
 		$ReadyNo )
-				echo "[ ERROR ] SentinelOne Not Ready" | tee -a "$SentinelLog"
+				echo "[ ERROR: NotReady ] SentinelOne Not Ready" | tee -a "$SentinelLog"
 				exitcode=1003
 				;;
 		$FWDisabled )
-				echo "[ ERROR ] Firewall Not Ready" | tee -a "$SentinelLog"
+				echo "[ ERROR: NoFirewall ] Firewall Not Ready" | tee -a "$SentinelLog"
 				exitcode=1004
 				;;
 		$InfectedYes )
-				echo "[ ERROR ] INFECTION DETECTED" | tee -a "$SentinelLog"
+				echo "[ ERROR: INFECTION ] INFECTION DETECTED" | tee -a "$SentinelLog"
 				exitcode=1024
 				;;		  
 	esac
