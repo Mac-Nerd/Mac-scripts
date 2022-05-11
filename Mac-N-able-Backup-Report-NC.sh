@@ -22,7 +22,7 @@ StatusReport=/Library/Application\ Support/MXB/Backup\ Manager/StatusReport.xml
 #SessionReport=/Library/Application\ Support/MXB/Backup\ Manager/SessionReport.xml
 ClientTool=/Applications/Backup\ Manager.app/Contents/MacOS/ClientTool
 
-BackupStatusLog=/Applications/Mac_Agent.app/Contents/Daemon/var/log/backup.log
+BackupStatusLog=/var/log/backup.log
 #BackupStatusLog=/tmp/backup.log
 
 
