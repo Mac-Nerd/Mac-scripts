@@ -9,6 +9,8 @@
 # out of the use of or inability to use the sample scripts.
 # ----- /Legal ----
 
+# Installs the latest version of the SentinelOne standalone EDR for Mac. The installation
+# token from your SentinelOne console is required.
 
 # The required install token can be hardcoded or provided as optional command line 
 # argument. If provided, the token from the CLI has priority.
