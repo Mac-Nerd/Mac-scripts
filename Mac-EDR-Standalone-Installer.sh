@@ -23,7 +23,8 @@
 
 installToken=""
 
-installerPKG="https://sis.n-able.com/SentinelOne/SentinelAgent_macos_latest.pkg"
+#installerPKG="https://sis.n-able.com/SentinelOne/SentinelAgent_macos_latest.pkg"
+installerPKG="https://sis.n-able.com/SentinelOne/Sentinel-Release_macos_v21_12_2_6003.pkg"
 
 logFile="/tmp/SentinelOneInstaller.log"
 
