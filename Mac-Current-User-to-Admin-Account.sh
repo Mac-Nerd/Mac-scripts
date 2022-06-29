@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # ----- Legal: ----
 # Sample scripts are not supported under any N-able support program or service.
 # The sample scripts are provided AS IS without warranty of any kind.
@@ -7,6 +8,9 @@
 # In no event shall N-able or any other party be liable for damages arising
 # out of the use of or inability to use the sample scripts.
 # -----------------------------------------------------------
+
+# Converts current logged-in standard user to an admin account.
+
 
 # Check your privilege
 if [ $(whoami) != "root" ]; then

@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # ----- Legal: ----
 # Sample scripts are not supported under any N-able support program or service.
 # The sample scripts are provided AS IS without warranty of any kind.
@@ -8,27 +9,25 @@
 # out of the use of or inability to use the sample scripts.
 # -----------------------------------------------------------
 
-# Converts current logged-in admin user to a standard account.
+# Logs to output whether the current logged-in user is a local user on the device, 
+# or an Active Directory domain user. Fails if there is no logged in user.
 
 
-# Check your privilege
-if [ $(whoami) != "root" ]; then
-    echo "This script must be run with root/sudo privileges."
-    exit 1002
-fi
-
-currentUser=$(scutil <<< "show State:/Users/ConsoleUser" | awk '/Name :/  { print $3 }')
+currentUser=$(stat -f "%S"u /dev/console )
 
 if [ "$currentUser" == "LoginWindow" ]
 then
-	echo "No current user."
+	echo "No logged in user."
 	exit 1001
-fi	
-
-if /usr/bin/dscl . -read "/groups/admin" GroupMembership | /usr/bin/grep -q "$currentUser"
-then
-	/usr/sbin/dseditgroup -o edit -d "$currentUser" admin
-	echo "$currentUser admin privileges removed."
 else
-	echo "$currentUser is not an administrator."
+	if dscl . -read "/Users/$currentUser" OriginalNodeName 2>&1 | grep -q "No such key"
+	then
+	  accountType="Local User"
+	else
+	  accountType="Domain User"
+	fi
+	
+	echo "$currentUser account type: $accountType"
+
 fi
+
