@@ -79,11 +79,11 @@ then
 
 	FullMDMOverrides=$(plutil -convert xml1 -o - /Library/Application\ Support/com.apple.TCC/MDMOverrides.plist)
 
-	MDMOverrides=$(echo $FullMDMOverrides | xmllint --xpath "/*/dict[*]/key" - | sed 's/<[^>]*>/ /g')
+	MDMOverrides=$(echo $FullMDMOverrides | xmllint --xpath "/*/dict[*]/key" - | sed 's/<[^>]*>/^/g')
 
 	Index=1
 
-	for Identifier in ${=MDMOverrides}
+	for Identifier in ${(s:^:)MDMOverrides}
 	do
 		printf "--- \n%s\n" $Identifier
 		
