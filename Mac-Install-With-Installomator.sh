@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # ----- Legal: ----
 # Sample scripts are not supported under any N-able support program or service.
 # The sample scripts are provided AS IS without warranty of any kind.
@@ -16,16 +16,18 @@
 # This script based on:
 # https://github.com/Installomator/Installomator/blob/dev/MDM/App-loop%20script.sh
 
-# Requires parameter(s): software titles to install, separated by spaces
+# Requires parameter(s): software titles to install, separated by commas
 # See a full list of available titles here:
 #	https://github.com/Installomator/Installomator/blob/dev/Labels.txt
 
+# Updated 11 August, 2022 - comma separated list instead of spaces.
 
-what=$* 
+
+what=$1
 
 if [ -z "$what" ]
 then
-	echo "ERROR: Required parameter: software titles to install, separated by spaces."
+	echo "ERROR: Required parameter: software titles to install, separated by commas."
 	echo "See a full list of available titles here:"
 	echo "https://github.com/Installomator/Installomator/blob/dev/Labels.txt"
 	exit 1001
@@ -51,6 +53,9 @@ if [ ! -e "${destFile}" ]; then
     echo "Exiting."
     caffexit 99
 fi
+
+
+IFS=","
 
 for item in $what; do
     #echo $item
