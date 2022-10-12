@@ -45,7 +45,8 @@ if [[ "$SIPResult" == "enabled" ]]; then
 else
 
 	echo "[WARNING]: SIP has been disabled. Enabling SIP and restarting now."
-	/usr/bin/csrutil enable
+	/usr/bin/csrutil clear
+	# functionally the same as csrutil enable, but shouldn't require booting into Recovery mode.
 
 osascript <<EOF
 tell application "System Events" to set quitapps to name of every application process whose visible is true and name is not "Finder"
