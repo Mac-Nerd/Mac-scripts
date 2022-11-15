@@ -5,7 +5,7 @@
 # To Do
 # - list apps in TCC.db that are no longer installed.
 # - offer to clean missing apps from TCC.db with tccutil
-# - output report in CSV? JSON?
+# - output report in CSV
 
 # !!! Terminal or process running this script will need Full Disk Access
 
