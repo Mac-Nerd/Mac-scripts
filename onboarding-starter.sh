@@ -71,8 +71,8 @@ destFile="/usr/local/Installomator/Installomator.sh"
 if [ ! -e "${destFile}" ]; then
 
 	# Download the Installomator release PKG from github.
-	downloadURL="https://github.com/Installomator/Installomator/releases/download/v9.0/Installomator-9.0.pkg" ;\
-	downloadTarget="Installomator-9.0.pkg" ;\
+	downloadURL="https://github.com/Installomator/Installomator/releases/download/v10.3/Installomator-10.3.pkg" ;\
+	downloadTarget="Installomator-10.3.pkg" ;\
 
 	# On successful download, install the PKG
 	if curl -SsL -f -o /tmp/"${downloadTarget}" "${downloadURL}"
