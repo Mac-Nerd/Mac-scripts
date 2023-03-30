@@ -1,10 +1,15 @@
 #!/bin/bash
-# This script is provided AS IS without warranty of any kind.
-# https://github.com/Mac-Nerd/Mac-scripts
+
+# This and all scripts in this repository are provided 
+# without warranties, guarantees, or manatees. All credit goes 
+# to Charles Mangin. You have only yourself to blame. 
+# https://oldbytes.space/@option8
+
+# Source: https://github.com/Mac-Nerd/Mac-scripts
 # -----------------------------------------------------------
 
 # Treat this like a sourdough starter. Feed it, use it, share it. 
-# This is a work in progress. Last updated July, 2022.
+# Last updated March, 2023.
 
 # Comment out or uncomment lines as needed below. 
 # Search for lines with "EDIT THIS" for specific recommended edit points.
