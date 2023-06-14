@@ -4,16 +4,6 @@
 # has been online for more than X/2 days. If uptime is > X days, 
 # the script will force a restart. Default X=14
 
-# ----- Legal: ----
-    # Sample scripts are not supported under any N-able support program or service.
-    # The sample scripts are provided AS IS without warranty of any kind.
-    # N-able expressly disclaims all implied warranties including, warranties
-    # of merchantability or of fitness for a particular purpose.
-    # In no event shall N-able or any other party be liable for damages arising
-    # out of the use of or inability to use the sample scripts.
-# -----------------------------------------------------------
-
-
 if [ -n "$1" ]
 then
 	maxUptime=$1
