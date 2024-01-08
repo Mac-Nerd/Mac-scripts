@@ -1,0 +1,183 @@
+#!/bin/bash
+
+# version 15July2022
+
+cd "$(dirname "$0")" || return
+source "include.sh"
+
+echo "CUSTOMER NAME: $CUSTOMER_NAME"
+echo "REGISTRATION TOKEN: $REGISTRATION_TOKEN"
+echo "CUSTOMER ID: $CUSTOMER_ID"
+
+SECRET_VALUE="*****"
+SRC="MacAgentInstallation.dmg"
+
+#### No edits necessary below this line. ####
+
+
+
+# clean up server address if necessary
+SERVERURL=$( echo "${SERVERURL}" | awk -F "://" '{if($2) print $2; else print $1;}' )
+SERVERURL=${SERVERURL%/} 	# strip trailing slash
+
+echo "SERVER URL: $SERVERURL"
+
+DMGURL=$(printf "https://%s/download/%s/macosx/N-central/MacAgentInstallation.dmg" "$SERVERURL" "$NCVERSION")
+
+echo "DMG URL: $DMGURL"
+
+
+if [ ! -d "/tmp/NCENTRAL/" ] ;
+then
+	echo "Creating temp download directory."
+	mkdir "/tmp/NCENTRAL/"
+fi
+	
+
+# get the installer pieces
+if [ -f "/tmp/NCENTRAL/MacAgentInstallation.dmg" ];
+then 
+	rm "/tmp/NCENTRAL/MacAgentInstallation.dmg"
+	echo "Removing previous downloaded DMG."
+fi
+
+echo "Downloading DMG"
+
+
+
+if ! curl -o "/tmp/NCENTRAL/MacAgentInstallation.dmg" "$DMGURL"
+then
+	echo "ERROR DOWNLOADING $DMGURL"
+	exit 1
+fi
+
+
+
+# run the installer script
+cd /tmp/NCENTRAL/ || return
+
+
+if [[ ! -f ${SRC} ]]; then
+    echo "[FATAL ERROR] Disk image ${SRC} does not exists"
+    exit 1
+fi
+# Default Values for port and protocol
+
+SERVER="$SERVERURL"
+
+if [[ -z ${PORT} ]]; then
+    PORT=443
+fi
+if [[ -z ${PROTOCOL} ]]; then
+    PROTOCOL=https
+fi
+
+
+if [[ -z ${SERVER} || -z ${CUSTOMER_NAME} || -z ${CUSTOMER_ID} || -z ${REGISTRATION_TOKEN} ]]; then
+	echo "[FATAL ERROR] Missing required information."
+	exit 1
+fi
+
+hdiutil mount "${SRC}"
+if [[ ! -d /Applications/Mac_Agent.app ]]; then
+    mkdir /Applications/Mac_Agent.app
+fi
+
+cp -fR "/Volumes/Mac Agent Installation/.Mac_Agent.app/Contents" /Applications/Mac_Agent.app/
+hdiutil unmount "/Volumes/Mac Agent Installation"
+chown -R root /Applications/Mac_Agent.app/
+chgrp -R wheel /Applications/Mac_Agent.app/
+validate_path=/Applications/Mac_Agent.app/Contents/Daemon/usr/sbin/InitialValidate
+if [[ -n ${SERVER} && -n ${PORT} && -n ${PROTOCOL} ]]; then
+    validate_command="sudo \"${validate_path}\" -s ${SERVER} -n ${PORT} -p ${PROTOCOL} "
+else
+    echo "Not valid activation key"
+fi
+if [[ -n ${PROXY} ]]; then
+    validate_command=${validate_command}"-x ${PROXY} "
+fi
+if [[ -n ${CUSTOMER_ID} && -n ${CUSTOMER_NAME} && -n ${REGISTRATION_TOKEN} ]]; then
+    command_to_print_out=${validate_command}" -f /tmp/nagent.conf -i ${CUSTOMER_ID} -c \"${CUSTOMER_NAME}\" -t ${SECRET_VALUE} -l /tmp/nagent_install_log"
+    validate_command=${validate_command}" -f /tmp/nagent.conf -i ${CUSTOMER_ID} -c \"${CUSTOMER_NAME}\" -t ${REGISTRATION_TOKEN} -l /tmp/nagent_install_log"
+elif [[ -n ${APPLIANCE} ]]; then
+    command_to_print_out=${validate_command}" -f /tmp/nagent.conf -a ${APPLIANCE} -t ${SECRET_VALUE} -l /tmp/nagent_install_log"
+    validate_command=${validate_command}" -f /tmp/nagent.conf -a ${APPLIANCE} -t ${REGISTRATION_TOKEN} -l /tmp/nagent_install_log"
+else
+	echo "[FATAL ERROR] Required information incorrect."
+    exit 1
+fi
+
+if [[ -n ${command_to_print_out} ]]; then
+    echo "${command_to_print_out}"
+else
+    echo "${validate_command}"
+fi
+
+# Cleanup
+rm -f /tmp/nagent.conf
+return_code=0
+
+# Run validate command and install upon success
+eval "${validate_command}"
+return_code=$?
+
+# On failure display error message
+if [[ ${return_code} -gt 0 ]]; then
+    echo "Could not successfully self-register agent"
+    case ${return_code} in
+        10)
+            echo "Could not connect to N-central server"
+            ;;
+        11)
+            echo "Invalid Customer Name"
+            ;;
+        12)
+            echo "Invalid Customer ID"
+            ;;
+        13)
+            echo "Invalid Appliance ID"
+            ;;
+        14)
+            echo "Local Asset Discovery failed, check /tmp/nagent_install_log for more details"
+            ;;
+        15)
+            echo "The N-central server cannot register the agent"
+            ;;
+        16)
+            echo "Unable to create Configuration file"
+            ;;
+        17)
+            echo "Unable to create log file"
+            ;;
+        *)
+            usage
+            echo "Unknown Error occurred, check /tmp/nagent_install_log for more details"
+            ;;
+    esac
+    /Applications/Mac_Agent.app/Contents/Daemon/usr/sbin/uninstall-nagent y -remain_mspa
+    exit 1
+fi
+
+echo "Update nagent.conf"
+cat <<EOF >> /tmp/nagent.conf
+    logfilename=/var/log/N-able/N-agent/nagent.log
+    loglevel=3
+    homedir=/Applications/Mac_Agent.app/Contents/Daemon/home/nagent/
+    thread_limitation=50 
+    poll_delay=1
+    datablock_size=20
+EOF
+
+# add error checking here
+cp -f /tmp/nagent.conf /Applications/Mac_Agent.app/Contents/Daemon/etc/
+rm -f /tmp/nagent.conf
+cp -f /Applications/Mac_Agent.app/Contents/Daemon/etc/*.plist /Library/LaunchDaemons/
+
+launchctl unload /Library/LaunchDaemons/com.n-able.agent-macosx.plist
+launchctl unload /Library/LaunchDaemons/com.n-able.agent-macosx.logrotate-daily.plist
+
+
+launchctl load -w /Library/LaunchDaemons/com.n-able.agent-macosx.plist
+launchctl load -w /Library/LaunchDaemons/com.n-able.agent-macosx.logrotate-daily.plist
+
+echo "The install was successful."
